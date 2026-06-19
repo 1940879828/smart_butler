@@ -4,32 +4,36 @@
 
 ## 项目概述
 
-MOSS 是一款安装在天花板轨道上的智能管家机器人，基于 ROS2 Jazzy Jalisco 开发。项目采用仿真优先的开发策略（Gazebo Fortress），预留真机迁移接口。由三个 Git 仓库组成，配有详细的实现指南文档。
+MOSS 是一款安装在天花板轨道上的智能管家机器人，基于 ROS2 Jazzy Jalisco 开发。项目采用仿真优先的开发策略（Gazebo Fortress），预留真机迁移接口。项目包含 ROS2 机器人核心、AI 语音服务和 Web Dashboard 三个主要模块，配有详细的实现指南文档。
 
-**技术栈**：ROS2 Jazzy (rclpy)、Gazebo Fortress (Ignition)、BehaviorTree.CPP v4.x、OpenAI 兼容 LLM API、faster-whisper、piper-tts、FastAPI、Vue3/React、PostgreSQL、Docker
+**技术栈**：ROS2 Jazzy (rclpy)、Gazebo Fortress (Ignition)、BehaviorTree.CPP v4.x、OpenAI 兼容 LLM API、faster-whisper、piper-tts、FastAPI、Vue3/React、PostgreSQL
 
 ## 仓库结构
 
 ```
-~/文档/LeranRos/
+smart_butler/
 ├── ros2智能管家实现指南.md          # 主实现指南文档（117KB）
+├── example/                         # Gazebo 示例世界和 launch 文件
+│   ├── gazebo_worlds/               # 示例世界文件
+│   └── launch/                      # 示例 launch 文件
 ├── smart_butler_ros2/               # ROS2 机器人核心
-│   ├── .github/workflows/test.yml   # CI：GitHub Actions 构建/测试
-│   ├── docker/                      # （空 - Docker 配置待补充）
 │   └── smart_butler_ws/
 │       ├── config/
 │       │   ├── sim.yaml             # 仿真环境配置
 │       │   └── features.yaml        # 功能开关配置
 │       ├── scripts/
 │       │   └── check_network.sh     # 网络连通性检查脚本
-│       └── src/                     # ROS2 包目录（在此创建）
-├── smart_butler_server/             # AI 与语音服务（部署在 Windows）
-│   ├── ai_service/                  # 大模型服务（空）
-│   ├── voice_service/               # Whisper ASR / Piper TTS（空）
-│   └── db/                          # PostgreSQL 数据库迁移（空）
-└── smart_butler_web/                # Web Dashboard（PWA）
-    ├── backend/                     # FastAPI 后端（空）
-    └── frontend/                    # Vue3/React 前端（空）
+│       └── src/                     # ROS2 包目录
+│           ├── butler_audio/        # 音频采集与播放
+│           ├── butler_bringup/      # Launch 文件、配置管理器
+│           ├── butler_camera/       # 摄像头节点
+│           ├── butler_description/  # URDF/Xacro 机器人模型
+│           ├── butler_gazebo/       # Gazebo 世界、插件、设备模拟器
+│           ├── butler_gimbal/       # 3 轴云台控制器
+│           ├── butler_msgs/         # 自定义 .msg/.srv/.action 消息定义
+│           └── butler_voice/        # ASR/TTS 服务客户端
+├── smart_butler_server/             # AI 与语音服务（部署在 Windows，待开发）
+└── smart_butler_web/                # Web Dashboard（PWA，待开发）
 ```
 
 ## 常用命令
@@ -56,11 +60,11 @@ colcon test-result --verbose
 # 运行单个包的测试
 colcon test --packages-select <包名>
 
-# 直接运行 Python 单元测试
-python3 -m pytest src/<包名>/tests/ -v
+# 直接运行 Python 单元测试（Linux 使用 python3，Windows 使用 python）
+python -m pytest src/<包名>/tests/ -v
 
 # 运行单个测试文件
-python3 -m pytest src/<包名>/tests/test_specific.py -v
+python -m pytest src/<包名>/tests/test_specific.py -v
 ```
 
 ### ROS2 调试检查
@@ -102,24 +106,33 @@ gz sim --versions
 ### 网络验证
 
 ```bash
-# 检查与 Windows 主机的连通性（PostgreSQL、Ollama）
+# 检查与 Windows 主机的连通性（PostgreSQL、Ollama）- 适用于 Ubuntu 环境
 ./smart_butler_ros2/smart_butler_ws/scripts/check_network.sh
+
+# Windows 环境下可使用 ping 或 Test-NetConnection 命令
+ping 192.168.2.xxx
+Test-NetConnection -ComputerName 192.168.2.xxx -Port 5432
 ```
 
 ## 架构说明
 
-### ROS2 包职责
+### ROS2 包职责（已实现）
 
 | 包名 | 构建类型 | 职责 |
 |------|---------|------|
 | `butler_bringup` | ament_python | Launch 文件、配置管理器（模块级单例） |
-| `butler_msgs` | ament_cmake | 自定义 .msg/.srv/.action 消息定义 |
-| `butler_description` | ament_cmake | URDF/Xacro/SDF 机器人模型 |
-| `butler_gazebo` | ament_cmake | Gazebo 世界文件、插件、设备模拟器 |
+| `butler_msgs` | ament_cmake | 自定义 .msg/.srv 消息定义 |
+| `butler_description` | ament_cmake | URDF/Xacro 机器人模型 |
+| `butler_gazebo` | ament_cmake | Gazebo 世界文件、设备模拟器 |
 | `butler_camera` | ament_python | 摄像头节点（仿真 + 真实硬件抽象层） |
 | `butler_gimbal` | ament_python | 3 轴云台控制器 |
 | `butler_audio` | ament_python | 音频采集（麦克风）与播放（喇叭） |
 | `butler_voice` | ament_python | ASR/TTS 服务客户端（远程调用 Windows 服务） |
+
+### ROS2 包职责（待开发）
+
+| 包名 | 构建类型 | 职责 |
+|------|---------|------|
 | `butler_ai` | ament_python | OpenAI 兼容 LLM 客户端 |
 | `butler_behavior` | ament_python | 行为树定义 |
 | `butler_ha` | ament_python | Home Assistant REST API 客户端 |
@@ -153,15 +166,15 @@ gz sim --versions
 |------|------|--------|
 | 0 | 基础设施（骨架、配置、自定义消息） | butler_msgs, butler_bringup |
 | 1 | 仿真环境（Gazebo 世界、机器人模型、摄像头、云台） | butler_description, butler_gazebo, butler_camera, butler_gimbal |
-| 2 | 感知能力（音频、语音、WebRTC） | butler_audio, butler_voice |
+| 2 | 感知能力（音频、语音） | butler_audio, butler_voice |
 | 3 | AI 大脑（大模型接入、行为树） | butler_ai, butler_behavior |
 | 4 | 智能家居（HA 集成、安全防护） | butler_ha, butler_security |
 | 5 | Web Dashboard（完整集成） | butler_web, smart_butler_web |
 
 ### 跨机架构
 
-- **Ubuntu（开发机）**：ROS2 节点、Gazebo 仿真
-- **Windows（5070Ti GPU 机器）**：PostgreSQL、Ollama/vLLM（本地大模型）、Whisper（ASR）、Piper（TTS）、butler_server（API 服务）
+- **Ubuntu（开发机）**：ROS2 节点、Gazebo 仿真（需要单独配置）
+- **Windows（当前环境）**：代码编辑、开发测试、AI 服务（PostgreSQL、Ollama/vLLM、Whisper、Piper、butler_server）
 - 通信方式：ROS2 节点通过 REST/gRPC 调用 Windows 服务；可选 DDS 跨机 ROS2 通信
 - Windows 主机 IP 在 `sim.yaml` 中配置为 `192.168.2.xxx`
 
@@ -180,53 +193,39 @@ gz sim --versions
 
 | 项目 | 值 |
 |------|-----|
-| 操作系统 | Ubuntu 24.04.4 LTS (noble), x86_64 |
-| 主机名 | taro-WUJIE14XA |
-| 用户名 | taro |
-| Python | 3.12.3 |
-| cmake | 3.28.3 |
-| ROS 2 | Jazzy（通过 packages.ros.org APT 源安装） |
-| 摄像头 | SunplusIT HD Webcam (USB: 2b7e:b663)，设备路径 /dev/video0~3 |
-| 本机 IP | 192.168.2.14 |
-| VPN 代理 | http://127.0.0.1:7897 |
+| 操作系统 | Windows (当前环境) |
+| 工作空间路径 | d:\WorkSpace\My\Ros\smart_butler |
+| Python | 待安装 |
+| cmake | 待安装 |
+| ROS 2 | 待安装（计划使用 Jazzy） |
 
 ### 代理与镜像配置
 
 本机位于中国（深圳），包下载需要配置镜像或代理：
 
-- **APT**：mirrors.aliyun.com（无需代理）
-- **pip**：pypi.tuna.tsinghua.edu.cn（已在 `~/.config/pip/pip.conf` 中配置）
-- **pip 编译型大包**（dlib 等）：必须使用 `--proxy=http://127.0.0.1:7897`
-- **Git**：已全局配置代理（`~/.gitconfig`），地址 `127.0.0.1:7897`
-- **curl**：访问受限站点时使用 `-x http://127.0.0.1:7897`
-- **wget**：使用 `-e use_proxy=yes -e https_proxy=http://127.0.0.1:7897`
+- **pip**：pypi.tuna.tsinghua.edu.cn
+- **Git**：可配置代理，地址 `127.0.0.1:7897`
 
 安装包时参考以下方式：
 
 ```bash
-# 普通 pip 安装（自动使用清华镜像）
-pip3 install <包名>
-
-# sudo pip 安装（使用 root 的镜像配置 /root/.config/pip/pip.conf）
-sudo pip3 install <包名>
+# 普通 pip 安装（使用清华镜像）
+pip install -i https://pypi.tuna.tsinghua.edu.cn/simple <包名>
 
 # 需要代理的编译型大包
-sudo pip3 install --proxy=http://127.0.0.1:7897 dlib
-
-# APT 安装（使用阿里云镜像，无需代理）
-sudo apt-get install <包名>
+pip install --proxy=http://127.0.0.1:7897 <包名>
 
 # 临时开启系统级代理
-export http_proxy=http://127.0.0.1:7897
-export https_proxy=http://127.0.0.1:7897
+set http_proxy=http://127.0.0.1:7897
+set https_proxy=http://127.0.0.1:7897
 ```
 
 ## 开发注意事项
 
 - `ros2智能管家实现指南.md` 是权威实现指南——各阶段的详细代码示例和步骤请参考该文档
 - 含自定义消息的 ROS2 包（`butler_msgs`）必须使用 `ament_cmake` 构建类型；纯 Python 包使用 `ament_python`
-- 构建后执行任何 `ros2` 命令前必须先 `source install/setup.bash`
+- 构建后执行任何 `ros2` 命令前必须先 `source install/setup.bash`（Linux）或设置环境变量（Windows）
 - Gazebo Fortress 的插件命名规则为 `libignition-gazebo-*.so`（不是 `libgz-`）
 - Gazebo Fortress 中关节控制的话题路径为 `/world/<世界名>/model/<模型名>/joint/<关节名>/0/cmd_pos`
-- `sudo pip3 install` 使用独立的 pip 配置 `/root/.config/pip/pip.conf`——需确保该文件也指向清华镜像
-- 编译型大包（dlib、face_recognition）不加 `--proxy=http://127.0.0.1:7897` 会超时
+- 编译型大包（dlib、face_recognition）可能需要代理才能正常安装
+- 当前 Windows 环境主要用于开发和测试，实际 ROS2 运行需要在 Ubuntu 环境中进行
