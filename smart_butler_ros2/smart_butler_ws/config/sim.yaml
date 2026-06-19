@@ -1,0 +1,58 @@
+# MOSS 机器人仿真环境配置
+robot:
+  name: "moss"
+  mode: "simulation"  # simulation | real
+
+# 功能开关
+features:
+  wake_word_enabled: false     # 唤醒词 "moss"，开发阶段关闭
+  face_recognition_enabled: false
+  smart_home_enabled: true
+  voice_interaction_enabled: true
+  video_streaming_enabled: true
+  notifications_enabled: false  # 通知推送（预留）
+
+# 节点配置
+nodes:
+  camera:
+    sim_source: "video_file"    # video_file | gazebo_plugin
+    video_path: "/home/taro/文档/LeranRos/assets/test_video.mp4"
+    resolution: [640, 480]
+    fps: 30
+
+  gimbal:
+    default_pan: 0.0
+    default_tilt: 0.0
+    default_roll: 0.0
+    max_pan_speed: 60.0         # 度/秒
+
+  ai:
+    api_base: "https://api.openai.com/v1"   # 或 "http://192.168.2.xxx:11434/v1" (Ollama)
+    model: "gpt-4o-mini"                     # 或 "qwen2.5:7b" (本地模型)
+    max_tokens: 2048
+    temperature: 0.7
+
+  voice:
+    asr:
+      provider: "whisper"       # whisper | azure | local
+      model: "base"             # tiny, base, small, medium, large
+      windows_endpoint: "http://192.168.2.xxx:8001"  # Windows 服务地址
+    tts:
+      provider: "piper"         # piper | edge | local
+      voice: "zh_CN"
+      windows_endpoint: "http://192.168.2.xxx:8002"
+
+  ha:
+    base_url: "http://192.168.2.xxx:8123"
+    token: "${HA_TOKEN}"        # 从环境变量读取
+
+# 安全配置
+security:
+  jwt_secret: "${JWT_SECRET}"
+  operation_log_dir: "/home/taro/文档/LeranRos/logs/operations"
+
+# 跨机通信
+network:
+  windows_host: "192.168.2.xxx"  # Windows 机器 IP
+  dds_domain: 0
+  api_timeout: 30                # 秒

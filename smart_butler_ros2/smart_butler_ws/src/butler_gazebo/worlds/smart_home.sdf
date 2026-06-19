@@ -1,0 +1,191 @@
+<?xml version="1.0"?>
+<sdf version="1.9">
+  <world name="smart_home">
+
+    <!-- 物理引擎 -->
+    <physics name="1ms" type="ignored">
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>1.0</real_time_factor>
+    </physics>
+
+    <!-- 光照 -->
+    <light type="directional" name="sun">
+      <pose>0 0 10 0 0 0</pose>
+      <diffuse>0.8 0.8 0.8 1</diffuse>
+    </light>
+
+    <!-- 地面 -->
+    <model name="ground_plane">
+      <static>true</static>
+      <link name="link">
+        <collision name="collision">
+          <geometry><plane><normal>0 0 1</normal><size>20 20</size></plane></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><plane><normal>0 0 1</normal><size>20 20</size></plane></geometry>
+          <material><ambient>0.8 0.8 0.8</ambient></material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- 四面墙 -->
+    <model name="wall_north">
+      <static>true</static>
+      <pose>0 2.5 1.25 0 0 0</pose>
+      <link name="link">
+        <visual name="visual">
+          <geometry><box><size>5 0.1 2.5</size></box></geometry>
+          <material><ambient>0.9 0.9 0.85</ambient></material>
+        </visual>
+        <collision name="collision">
+          <geometry><box><size>5 0.1 2.5</size></box></geometry>
+        </collision>
+      </link>
+    </model>
+
+    <model name="wall_south">
+      <static>true</static>
+      <pose>0 -2.5 1.25 0 0 0</pose>
+      <link name="link">
+        <visual name="visual">
+          <geometry><box><size>5 0.1 2.5</size></box></geometry>
+          <material><ambient>0.9 0.9 0.85</ambient></material>
+        </visual>
+        <collision name="collision">
+          <geometry><box><size>5 0.1 2.5</size></box></geometry>
+        </collision>
+      </link>
+    </model>
+
+    <model name="wall_east">
+      <static>true</static>
+      <pose>2.5 0 1.25 0 0 1.5708</pose>
+      <link name="link">
+        <visual name="visual">
+          <geometry><box><size>5 0.1 2.5</size></box></geometry>
+          <material><ambient>0.9 0.9 0.85</ambient></material>
+        </visual>
+        <collision name="collision">
+          <geometry><box><size>5 0.1 2.5</size></box></geometry>
+        </collision>
+      </link>
+    </model>
+
+    <model name="wall_west">
+      <static>true</static>
+      <pose>-2.5 0 1.25 0 0 1.5708</pose>
+      <link name="link">
+        <visual name="visual">
+          <geometry><box><size>5 0.1 2.5</size></box></geometry>
+          <material><ambient>0.9 0.9 0.85</ambient></material>
+        </visual>
+        <collision name="collision">
+          <geometry><box><size>5 0.1 2.5</size></box></geometry>
+        </collision>
+      </link>
+    </model>
+
+    <!-- 天花板 -->
+    <model name="ceiling">
+      <static>true</static>
+      <pose>0 0 2.5 0 0 0</pose>
+      <link name="link">
+        <visual name="visual">
+          <geometry><box><size>5 5 0.05</size></box></geometry>
+          <material><ambient>0.95 0.95 0.9</ambient></material>
+        </visual>
+        <collision name="collision">
+          <geometry><box><size>5 5 0.05</size></box></geometry>
+        </collision>
+      </link>
+    </model>
+
+    <!-- 天花板轨道 - 模拟轨道走线 -->
+    <model name="ceiling_track">
+      <static>true</static>
+      <pose>0 0 2.45 0 0 0</pose>
+      <link name="track">
+        <visual name="visual">
+          <geometry><box><size>3.0 0.02 0.01</size></box></geometry>
+          <material><ambient>0.3 0.3 0.3</ambient></material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- 简单家具 - 沙发 -->
+    <model name="sofa">
+      <static>true</static>
+      <pose>-1.5 -1.5 0.4 0 0 0</pose>
+      <link name="sofa_body">
+        <visual name="visual">
+          <geometry><box><size>1.5 0.6 0.8</size></box></geometry>
+          <material><ambient>0.4 0.3 0.2</ambient></material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- 简单家具 - 桌子 -->
+    <model name="table">
+      <static>true</static>
+      <pose>1.0 1.0 0.4 0 0 0</pose>
+      <link name="table_top">
+        <visual name="visual">
+          <geometry><box><size>1.0 0.6 0.05</size></box></geometry>
+          <material><ambient>0.6 0.4 0.2</ambient></material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- 可调光灯模型（智能设备） -->
+    <model name="smart_light">
+      <static>true</static>
+      <pose>0 0 2.3 0 0 0</pose>
+      <link name="light_body">
+        <visual name="visual">
+          <geometry><sphere><radius>0.1</radius></sphere></geometry>
+          <material>
+            <ambient>1.0 1.0 0.8 1.0</ambient>
+            <emissive>1.0 0.9 0.7 1.0</emissive>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- 温度传感器模型 -->
+    <model name="temp_sensor">
+      <static>true</static>
+      <pose>1.5 1.5 1.5 0 0 0</pose>
+      <link name="sensor_body">
+        <visual name="visual">
+          <geometry><box><size>0.05 0.05 0.02</size></box></geometry>
+          <material><ambient>0.8 0.8 0.8</ambient></material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- 窗帘模型 -->
+    <model name="curtain">
+      <static>true</static>
+      <pose>0 -2.4 1.5 0 0 0</pose>
+      <link name="curtain_body">
+        <visual name="visual">
+          <geometry><box><size>1.0 0.02 1.5</size></box></geometry>
+          <material><ambient>0.7 0.8 0.9</ambient></material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- 空调模型 -->
+    <model name="ac_unit">
+      <static>true</static>
+      <pose>2.4 0 2.0 0 0 0</pose>
+      <link name="ac_body">
+        <visual name="visual">
+          <geometry><box><size>0.4 0.15 0.3</size></box></geometry>
+          <material><ambient>0.9 0.9 0.9</ambient></material>
+        </visual>
+      </link>
+    </model>
+
+  </world>
+</sdf>

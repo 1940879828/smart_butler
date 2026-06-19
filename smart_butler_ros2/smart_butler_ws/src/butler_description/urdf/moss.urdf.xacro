@@ -1,0 +1,130 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="moss">
+
+  <!-- 材料定义 -->
+  <material name="black">
+    <color rgba="0.1 0.1 0.1 1.0"/>
+  </material>
+  <material name="gray">
+    <color rgba="0.5 0.5 0.5 1.0"/>
+  </material>
+  <material name="white">
+    <color rgba="0.9 0.9 0.9 1.0"/>
+  </material>
+
+  <!-- 世界参考帧（Gazebo 需要显式定义） -->
+  <link name="world"/>
+
+  <!-- 底座 - 安装在天花板上 -->
+  <link name="base_link">
+    <visual>
+      <geometry>
+        <box size="0.15 0.15 0.05"/>
+      </geometry>
+      <material name="gray"/>
+    </visual>
+    <collision>
+      <geometry>
+        <box size="0.15 0.15 0.05"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.5"/>
+      <inertia ixx="0.001" ixy="0" ixz="0" iyy="0.001" iyz="0" izz="0.001"/>
+    </inertial>
+  </link>
+
+  <!-- 固定底座到世界（天花板） -->
+  <joint name="base_to_world" type="fixed">
+    <parent link="world"/>
+    <child link="base_link"/>
+    <origin xyz="0 0 2.5" rpy="0 0 0"/> <!-- 天花板高度 2.5m -->
+  </joint>
+
+  <!-- Pan 轴（水平旋转） -->
+  <joint name="pan_joint" type="revolute">
+    <parent link="base_link"/>
+    <child link="pan_link"/>
+    <origin xyz="0 0 -0.05" rpy="0 0 0"/>
+    <axis xyz="0 0 1"/>
+    <limit lower="-3.1416" upper="3.1416" effort="1.0" velocity="1.0"/>
+  </joint>
+
+  <link name="pan_link">
+    <visual>
+      <geometry>
+        <cylinder radius="0.04" length="0.03"/>
+      </geometry>
+      <material name="black"/>
+    </visual>
+    <inertial>
+      <mass value="0.2"/>
+      <inertia ixx="0.0001" ixy="0" ixz="0" iyy="0.0001" iyz="0" izz="0.0001"/>
+    </inertial>
+  </link>
+
+  <!-- Tilt 轴（俯仰） -->
+  <joint name="tilt_joint" type="revolute">
+    <parent link="pan_link"/>
+    <child link="tilt_link"/>
+    <origin xyz="0 0 -0.02" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+    <limit lower="-1.57" upper="1.57" effort="0.5" velocity="0.5"/>
+  </joint>
+
+  <link name="tilt_link">
+    <visual>
+      <geometry>
+        <box size="0.06 0.04 0.04"/>
+      </geometry>
+      <material name="white"/>
+    </visual>
+    <inertial>
+      <mass value="0.15"/>
+      <inertia ixx="0.0001" ixy="0" ixz="0" iyy="0.0001" iyz="0" izz="0.0001"/>
+    </inertial>
+  </link>
+
+  <!-- Roll 轴（旋转） -->
+  <joint name="roll_joint" type="revolute">
+    <parent link="tilt_link"/>
+    <child link="camera_link"/>
+    <origin xyz="0.05 0 0" rpy="0 0 0"/>
+    <axis xyz="1 0 0"/>
+    <limit lower="-3.1416" upper="3.1416" effort="0.5" velocity="0.5"/>
+  </joint>
+
+  <!-- 摄像头 -->
+  <link name="camera_link">
+    <visual>
+      <geometry>
+        <cylinder radius="0.025" length="0.05"/>
+      </geometry>
+      <material name="black"/>
+    </visual>
+    <inertial>
+      <mass value="0.1"/>
+      <inertia ixx="0.00005" ixy="0" ixz="0" iyy="0.00005" iyz="0" izz="0.00005"/>
+    </inertial>
+  </link>
+
+  <!-- 摄像头传感器 -->
+  <gazebo reference="camera_link">
+    <sensor type="camera" name="moss_camera">
+      <update_rate>30.0</update_rate>
+      <camera>
+        <horizontal_fov>1.047</horizontal_fov>
+        <image>
+          <width>640</width>
+          <height>480</height>
+          <format>R8G8B8</format>
+        </image>
+        <clip>
+          <near>0.1</near>
+          <far>100</far>
+        </clip>
+      </camera>
+    </sensor>
+  </gazebo>
+
+</robot>

@@ -1,0 +1,26 @@
+# MOSS 功能开关统一配置
+# 用法: 节点启动时读取此文件，决定启用哪些功能模块
+
+features:
+  # 音频相关
+  wake_word: false        # 唤醒词 "moss" 检测
+  asr: true               # 语音识别
+  tts: true               # 文本转语音
+
+  # 视觉相关
+  object_detection: true  # 物体检测
+  person_tracking: false  # 人物追踪（留待后续）
+  face_recognition: false # 人脸识别（留待后续）
+
+  # 智能家居
+  smart_home: true        # HA 操控
+  auto_routine: false     # 自动场景（如离家模式）
+
+  # 通知
+  notifications: false    # 异常推送通知（留待后续）
+
+  # 屏幕
+  onboard_display: false  # 机载屏幕（先不做）
+
+  # 移动
+  track_movement: false   # 轨道移动（后期硬件）
