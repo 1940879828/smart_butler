@@ -11,7 +11,6 @@ from butler_msgs.msg import VoiceCommand
 import numpy as np
 import rclpy
 from rclpy.node import Node
-from rclpy.parameter import Parameter
 import sounddevice as sd
 
 
@@ -23,9 +22,7 @@ class MicNode(Node):
 
         self.declare_parameter('sample_rate', 16000)
         self.declare_parameter('channels', 1)
-        self.declare_parameter(
-            'device', '',
-            descriptor=Parameter.descriptor(string_type=True))
+        self.declare_parameter('device', '')
         self.declare_parameter('blocksize', 1024)
 
         self._sample_rate = self.get_parameter('sample_rate').value
