@@ -1,24 +1,39 @@
 # Python
 __pycache__/
 *.py[cod]
+*$py.class
+*.so
 *.egg-info/
 dist/
 build/
-.venv/
+eggs/
+*.egg
+
+# Virtual environment
 venv/
+.venv/
+ENV/
+
+# Environment variables
+.env
 
 # IDE
-.vscode/
 .idea/
+.vscode/
 *.swp
+*.swo
 
-# Env
-.env
-.env.local
+# Logs
+logs/
 
-# Docker
-docker-compose.override.yml
+# Models (large files)
+models/
 
 # OS
 .DS_Store
 Thumbs.db
+
+# Test
+.coverage
+htmlcov/
+.pytest_cache/

@@ -1,0 +1,32 @@
+# Core FastAPI and server
+fastapi>=0.104.0
+uvicorn[standard]>=0.24.0
+
+# ASR engine
+faster-whisper>=0.10.0
+
+# Audio processing
+numpy>=1.24.0
+soundfile>=0.12.0
+
+# Configuration and environment
+python-dotenv>=1.0.0
+pydantic>=2.0.0
+pydantic-settings>=2.0.0
+
+# Logging
+loguru>=0.7.0
+
+# GPU acceleration (CUDA 12.x for 5070Ti)
+torch>=2.1.0
+torchaudio>=2.1.0
+
+# HTTP client for testing
+httpx>=0.25.0
+
+# Testing
+pytest>=7.4.0
+pytest-asyncio>=0.21.0
+
+# Optional: TTS engine (Phase 2)
+# piper-tts>=1.2.0
