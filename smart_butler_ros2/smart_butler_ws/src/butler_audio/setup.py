@@ -21,6 +21,14 @@ setup(
         'test': [
             'pytest',
         ],
+        'sounds': [
+            'soundfile>=0.12.0',
+            'scipy>=1.7.0',
+        ],
+        'all': [
+            'soundfile>=0.12.0',
+            'scipy>=1.7.0',
+        ],
     },
     entry_points={
         'console_scripts': [

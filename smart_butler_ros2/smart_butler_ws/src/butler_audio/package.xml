@@ -10,6 +10,12 @@
   <depend>rclpy</depend>
   <depend>std_msgs</depend>
   <depend>butler_msgs</depend>
+  <depend>python3-numpy</depend>
+  <depend>python3-sounddevice</depend>
+
+  <!-- Optional dependencies for sound effects -->
+  <exec_depend condition="$SOUNDFILE">python3-soundfile</exec_depend>
+  <exec_depend condition="$SCIPY">python3-scipy</exec_depend>
 
   <test_depend>ament_copyright</test_depend>
   <test_depend>ament_flake8</test_depend>

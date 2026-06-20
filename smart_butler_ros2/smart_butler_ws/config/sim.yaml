@@ -5,7 +5,7 @@ robot:
 
 # 功能开关
 features:
-  wake_word_enabled: false     # 唤醒词 "moss"，开发阶段关闭
+  wake_word_enabled: true      # 唤醒词 "moss"
   face_recognition_enabled: false
   smart_home_enabled: true
   voice_interaction_enabled: true
@@ -42,6 +42,9 @@ nodes:
       noise_reduction: true                     # 启用语音频段带通滤波 (80-4000Hz)
       filter_lowcut: 80                         # 高通截止频率 Hz（人声基频下限）
       filter_highcut: 4000                      # 低通截止频率 Hz（人声谐波上限）
+      # VAD 配置
+      vad_mode: "hybrid"                       # energy | webrtc | hybrid
+      webrtc_aggressiveness: 2                 # WebRTC VAD 敏感度 (0-3, 3最严格)
       # MiMo ASR（backend=mimo 时使用）
       api_base: "https://token-plan-cn.xiaomimimo.com/v1"
       api_key: "tp-c6vopk55c5ugh7ivkhik8zy6cb5gd0mk24phappqamer5sb3"
@@ -53,6 +56,12 @@ nodes:
       local_compute_type: "int8"
       # 设计路径：Windows Whisper HTTP 服务（backend=whisper_remote 时使用）
       whisper_endpoint: "http://192.168.2.xxx:8001/transcribe"
+    wake_word:
+      enabled: true
+      word: "moss"
+      threshold: 0.5
+      use_openwakeword: true
+      energy_threshold: 3000
     tts:
       provider: "piper"         # piper | edge | local
       voice: "zh_CN"

@@ -8,6 +8,11 @@ Supports multiple backends, switchable via the `backend` parameter or sim.yaml:
 Subscribes to /moss/audio/raw for VoiceCommand messages, performs VAD on
 accumulated audio buffers, and publishes recognition results to
 /moss/voice/recognized.
+
+VAD modes:
+- energy: Simple energy threshold (legacy, fast but less accurate)
+- webrtc: WebRTC VAD (more accurate, requires webrtcvad package)
+- hybrid: Combined energy + WebRTC (best accuracy)
 """
 
 import base64
@@ -27,6 +32,23 @@ from std_msgs.msg import String
 import yaml
 
 from butler_msgs.msg import VoiceCommand
+
+# Import WebRTC VAD module
+try:
+    from .webrtc_vad import HybridVAD, create_vad
+    HAS_WEBRTC_VAD = True
+except ImportError:
+    HAS_WEBRTC_VAD = False
+    # Fallback: define dummy classes
+    class HybridVAD:
+        def __init__(self, *args, **kwargs):
+            pass
+        def process(self, audio):
+            return False, None
+        def reset(self):
+            pass
+    def create_vad(*args, **kwargs):
+        return HybridVAD()
 
 
 # ---- Voice band-pass filter (lazy init) -----------------------------
@@ -161,6 +183,12 @@ class ASRClient(Node):
         self.declare_parameter('filter_highcut',
                                self._cfg.get('filter_highcut', 4000))
 
+        # VAD configuration
+        self.declare_parameter('vad_mode',
+                               self._cfg.get('vad_mode', 'hybrid'))
+        self.declare_parameter('webrtc_aggressiveness',
+                               self._cfg.get('webrtc_aggressiveness', 2))
+
         # MiMo / remote params
         self.declare_parameter('api_base',
                                self._cfg.get('api_base', ''))
@@ -201,6 +229,10 @@ class ASRClient(Node):
 
         self._whisper_endpoint = self.get_parameter('whisper_endpoint').value
 
+        # VAD configuration
+        self._vad_mode = self.get_parameter('vad_mode').value
+        self._webrtc_aggressiveness = self.get_parameter('webrtc_aggressiveness').value
+
         # --- local Whisper model (loaded lazily) ---
         self._whisper_model = None
         if self._backend == 'local':
@@ -214,7 +246,34 @@ class ASRClient(Node):
                 f'Noise reduction enabled ({self._filter_lowcut}-'
                 f'{self._filter_highcut}Hz band-pass)')
 
-        # --- VAD state ---
+        # --- VAD initialization ---
+        self._vad = None
+        if self._vad_mode in ('webrtc', 'hybrid'):
+            if HAS_WEBRTC_VAD:
+                try:
+                    self._vad = create_vad(
+                        sample_rate=self._sample_rate,
+                        energy_threshold=self._silence_threshold,
+                        use_webrtc=True,
+                        webrtc_aggressiveness=self._webrtc_aggressiveness,
+                    )
+                    self.get_logger().info(
+                        f'WebRTC VAD enabled (mode={self._vad_mode}, '
+                        f'aggressiveness={self._webrtc_aggressiveness})')
+                except Exception as e:
+                    self.get_logger().warn(
+                        f'Failed to initialize WebRTC VAD: {e}. '
+                        f'Falling back to energy-based VAD.')
+                    self._vad_mode = 'energy'
+                    self._vad = None
+            else:
+                self.get_logger().warn(
+                    'WebRTC VAD requested but webrtcvad not installed. '
+                    'Falling back to energy-based VAD. '
+                    'Install with: pip install webrtcvad')
+                self._vad_mode = 'energy'
+
+        # --- VAD state (for energy-based fallback) ---
         buflen = int(self._sample_rate * self._buffer_dur)
         self._buffer = deque(maxlen=buflen)
         self._is_speaking = False
@@ -284,6 +343,20 @@ class ASRClient(Node):
             audio_f32 = sosfilt(sos, audio_f32)
             audio = audio_f32.astype(np.int16)
 
+        # Process audio through VAD
+        if self._vad_mode in ('webrtc', 'hybrid') and self._vad is not None:
+            # Use WebRTC/hybrid VAD
+            is_speech, speech_audio = self._vad.process(audio)
+
+            # If speech ended, we have complete audio to transcribe
+            if speech_audio is not None and len(speech_audio) > 0:
+                self._dispatch_transcription(speech_audio)
+        else:
+            # Fallback to energy-based VAD
+            self._process_energy_vad(audio)
+
+    def _process_energy_vad(self, audio: np.ndarray):
+        """Process audio using simple energy-based VAD (fallback)."""
         energy = np.abs(audio).mean()
 
         if energy > self._silence_threshold:
@@ -304,6 +377,7 @@ class ASRClient(Node):
     # ---- flush & dispatch ------------------------------------------
 
     def _flush(self):
+        """Flush energy-based VAD buffer and dispatch for transcription."""
         min_samples = int(self._sample_rate * 0.5)
         if len(self._buffer) < min_samples:
             self._reset()
@@ -312,6 +386,10 @@ class ASRClient(Node):
         audio_data = np.array(list(self._buffer), dtype=np.int16)
         self._reset()
 
+        self._dispatch_transcription(audio_data)
+
+    def _dispatch_transcription(self, audio_data: np.ndarray):
+        """Dispatch audio for transcription in background thread."""
         if self._backend == 'local':
             target = self._transcribe_local
         elif self._backend == 'mimo':
@@ -324,9 +402,12 @@ class ASRClient(Node):
         thread.start()
 
     def _reset(self):
+        """Reset VAD state."""
         self._buffer.clear()
         self._is_speaking = False
         self._silence_count = 0
+        if self._vad:
+            self._vad.reset()
 
     # ---- MiMo chat-completions multimodal ASR ----------------------
 

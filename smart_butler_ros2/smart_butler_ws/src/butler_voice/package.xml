@@ -11,6 +11,12 @@
   <depend>std_msgs</depend>
   <depend>butler_msgs</depend>
   <depend>python3-pyyaml</depend>
+  <depend>python3-numpy</depend>
+  <depend>python3-requests</depend>
+
+  <!-- Optional dependencies for enhanced features -->
+  <exec_depend condition="$WEBSOCKET_VAD">python3-webrtcvad</exec_depend>
+  <exec_depend condition="$OPENWAKEWORD">python3-openwakeword</exec_depend>
 
   <test_depend>ament_copyright</test_depend>
   <test_depend>ament_flake8</test_depend>

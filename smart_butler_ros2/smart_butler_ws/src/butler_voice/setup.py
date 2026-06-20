@@ -21,11 +21,24 @@ setup(
         'test': [
             'pytest',
         ],
+        'webrtc': [
+            'webrtcvad>=2.0.10',
+        ],
+        'wakeword': [
+            'openwakeword>=0.6.0',
+            'onnxruntime>=1.16.0',
+        ],
+        'all': [
+            'webrtcvad>=2.0.10',
+            'openwakeword>=0.6.0',
+            'onnxruntime>=1.16.0',
+        ],
     },
     entry_points={
         'console_scripts': [
             'asr_client = butler_voice.asr_client:main',
             'tts_client = butler_voice.tts_client:main',
+            'wake_word_node = butler_voice.wake_word_node:main',
         ],
     },
 )
