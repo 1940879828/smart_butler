@@ -33,6 +33,10 @@ models/
 .DS_Store
 Thumbs.db
 
+# Test audio files
+test_audio_*.wav
+test_audio_*.mp3
+
 # Test
 .coverage
 htmlcov/

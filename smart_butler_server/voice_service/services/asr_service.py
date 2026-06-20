@@ -129,6 +129,9 @@ class ASRService:
                 audio_array = audio_array.astype(np.float32)
             
             # Perform transcription
+            # initial_prompt引导模型输出简体中文
+            initial_prompt = "以下是普通话的句子。" if language == "zh" else None
+            
             segments, info = self.model.transcribe(
                 audio_array,
                 language=language,
@@ -137,7 +140,8 @@ class ASRService:
                 vad_parameters=dict(
                     min_silence_duration_ms=500,
                     speech_pad_ms=200
-                )
+                ),
+                initial_prompt=initial_prompt
             )
             
             # Collect transcription results
